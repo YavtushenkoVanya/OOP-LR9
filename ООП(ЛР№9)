@@ -1,0 +1,122 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace GraphPlotter
+{
+    public class GraphPlotterForm : Form
+    {
+        private TextBox coefficientATextBox;
+        private TextBox coefficientBTextBox;
+        private TextBox coefficientCTextBox;
+        private Button plotButton;
+        private PictureBox graphPictureBox;
+
+        private const int plotWidth = 600;
+        private const int plotHeight = 400;
+        private const int plotMargin = 20;
+
+        public GraphPlotterForm()
+        {
+            InitializeUI();
+        }
+
+        private void InitializeUI()
+        {
+            // Налаштування форми
+            Text = "Графік функції";
+            Size = new Size(plotWidth + 2 * plotMargin, plotHeight + 3 * plotMargin + 50);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+
+            // Налаштування елементів управління
+            coefficientATextBox = new TextBox();
+            coefficientATextBox.Location = new Point(plotMargin, plotMargin);
+            coefficientATextBox.Size = new Size(50, 20);
+
+            coefficientBTextBox = new TextBox();
+            coefficientBTextBox.Location = new Point(plotMargin, 2 * plotMargin);
+            coefficientBTextBox.Size = new Size(50, 20);
+
+            coefficientCTextBox = new TextBox();
+            coefficientCTextBox.Location = new Point(plotMargin, 3 * plotMargin);
+            coefficientCTextBox.Size = new Size(50, 20);
+
+            plotButton = new Button();
+            plotButton.Text = "Побудувати графік";
+            plotButton.Location = new Point(plotMargin, 4 * plotMargin);
+            plotButton.Click += PlotButton_Click;
+
+            graphPictureBox = new PictureBox();
+            graphPictureBox.Location = new Point(plotMargin, 5 * plotMargin);
+            graphPictureBox.Size = new Size(plotWidth, plotHeight);
+            graphPictureBox.BackColor = Color.White;
+            graphPictureBox.Paint += GraphPictureBox_Paint;
+
+            // Додавання елементів управління до форми
+            Controls.Add(coefficientATextBox);
+            Controls.Add(coefficientBTextBox);
+            Controls.Add(coefficientCTextBox);
+            Controls.Add(plotButton);
+            Controls.Add(graphPictureBox);
+        }
+
+        private void PlotButton_Click(object sender, EventArgs e)
+        {
+            graphPictureBox.Refresh();
+        }
+
+        private void GraphPictureBox_Paint(object sender, PaintEventArgs e)
+        {
+            // Отримання коефіцієнтів a, b, c з текстових полів
+            if (!double.TryParse(coefficientATextBox.Text, out double a) ||
+                !double.TryParse(coefficientBTextBox.Text, out double b) ||
+                !double.TryParse(coefficientCTextBox.Text, out double c))
+            {
+                MessageBox.Show("Некоректні коефіцієнти. Будь ласка, введіть числові значення.");
+                return;
+            }
+
+            // Створення об'єкту Graphics для малювання на PictureBox
+            Graphics g = e.Graphics;
+            Pen graphPen = new Pen(Color.Red, 2);
+
+            // Розрахунок масштабу
+            double xScale = plotWidth / 10.0;
+            double yScale = plotHeight / 10.0;
+
+            // Малювання графіку
+            for (double x = -10; x <= 10; x += 0.1)
+            {
+                double y = a * x * x + b * x + c;
+
+                float xPlot = (float)(plotWidth / 2 + x * xScale);
+                float yPlot = (float)(plotHeight / 2 - y * yScale);
+
+                // Перевірка меж для xPlot
+                if (xPlot < 0 || xPlot >= plotWidth)
+                {
+                    continue;
+                }
+
+                // Перевірка меж для yPlot
+                if (yPlot < 0 || yPlot >= plotHeight)
+                {
+                    continue;
+                }
+
+                g.DrawEllipse(graphPen, xPlot, yPlot, 2, 2);
+            }
+
+            graphPen.Dispose();
+        }
+    }
+
+    public class Program
+    {
+        public static void Main()
+        {
+            Application.Run(new GraphPlotterForm());
+        }
+    }
+}
